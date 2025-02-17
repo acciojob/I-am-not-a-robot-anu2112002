@@ -1,79 +1,70 @@
 //your code here
-document.addEventListener("DOMContentLoaded", function () {
-  const imagesContainer = document.createElement("div");
-  imagesContainer.classList.add("flex");
-  document.querySelector("main").appendChild(imagesContainer);
+const images = [
+  "https://picsum.photos/id/237/200/300",
+  "https://picsum.photos/seed/picsum/200/300",
+  "https://picsum.photos/200/300?grayscale",
+  "https://picsum.photos/200/300/",
+  "https://picsum.photos/200/300.jpg"
+];
 
-  const images = [
-    "https://picsum.photos/id/237/200/300",
-    "https://picsum.photos/seed/picsum/200/300",
-    "https://picsum.photos/200/300?grayscale",
-    "https://picsum.photos/200/300/",
-    "https://picsum.photos/200/300.jpg"
-  ];
-  
-  const duplicateImage = images[Math.floor(Math.random() * images.length)];
-  const allImages = [...images, duplicateImage];
-  allImages.sort(() => Math.random() - 0.5);
+let duplicatedImageIndex = Math.floor(Math.random() * images.length);
+images.push(images[duplicatedImageIndex]);
 
-  let selectedImages = [];
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
-  const message = document.createElement("h3");
-  message.id = "h";
-  message.textContent = "Please click on the identical tiles to verify that you are not a robot.";
-  document.querySelector("main").prepend(message);
+shuffle(images);
 
-  const resultMessage = document.createElement("p");
-  resultMessage.id = "para";
-  document.querySelector("main").appendChild(resultMessage);
+const imageContainer = document.getElementById("image-container");
+let selectedImages = [];
+images.forEach((imageSrc, index) => {
+  const img = document.createElement("img");
+  img.src = imageSrc;
+  img.dataset.index = index;
+  img.addEventListener("click", handleImageClick);
+  imageContainer.appendChild(img);
+});
 
-  const resetButton = document.createElement("button");
-  resetButton.id = "reset";
-  resetButton.textContent = "Reset";
-  resetButton.style.display = "none";
-  document.querySelector("main").appendChild(resetButton);
+const resetButton = document.getElementById("reset");
+const verifyButton = document.getElementById("verify");
+const message = document.getElementById("para");
 
-  const verifyButton = document.createElement("button");
-  verifyButton.id = "verify";
-  verifyButton.textContent = "Verify";
-  verifyButton.style.display = "none";
-  document.querySelector("main").appendChild(verifyButton);
+resetButton.addEventListener("click", reset);
+verifyButton.addEventListener("click", verify);
 
-  allImages.forEach((src, index) => {
-    const img = document.createElement("img");
-    img.src = src;
-    img.dataset.index = index;
-    img.addEventListener("click", () => handleImageClick(img));
-    imagesContainer.appendChild(img);
-  });
-
-  function handleImageClick(img) {
-    if (selectedImages.length >= 2) return;
-    if (selectedImages.includes(img)) return;
+function handleImageClick(event) {
+  const img = event.target;
+  if (!selectedImages.includes(img)) {
     img.classList.add("selected");
     selectedImages.push(img);
-    resetButton.style.display = "block";
+
+    if (selectedImages.length >= 1) {
+      resetButton.style.display = "block";
+    }
+
     if (selectedImages.length === 2) {
       verifyButton.style.display = "block";
     }
   }
+}
 
-  resetButton.addEventListener("click", () => {
-    selectedImages.forEach(img => img.classList.remove("selected"));
-    selectedImages = [];
-    resetButton.style.display = "none";
-    verifyButton.style.display = "none";
-    resultMessage.textContent = "";
-  });
+function reset() {
+  selectedImages.forEach(img => img.classList.remove("selected"));
+  selectedImages = [];
+  resetButton.style.display = "none";
+  verifyButton.style.display = "none";
+  message.textContent = "";
+}
 
-  verifyButton.addEventListener("click", () => {
-    if (selectedImages.length === 2) {
-      if (selectedImages[0].src === selectedImages[1].src) {
-        resultMessage.textContent = "You are a human. Congratulations!";
-      } else {
-        resultMessage.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
-      }
-      verifyButton.style.display = "none";
-    }
-  });
-});
+function verify() {
+  if (selectedImages[0].src === selectedImages[1].src) {
+    message.textContent = "You are a human. Congratulations!";
+  } else {
+    message.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
+  }
+  verifyButton.style.display = "none";
+}
